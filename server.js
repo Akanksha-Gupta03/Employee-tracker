@@ -263,16 +263,16 @@ async function updateEmployee(){
         }
     ]);
     
-    usersName = updateEmployeeRole.firstName;
+    userName = updateEmployeeRole.firstName;
     updateRole = updateEmployeeRole.updateroleId;
 
     for (var i = 0; i <roleUpdate.length; i++){
         if(updateRole == roleUpdate[i].title){
-            const addRow = await db.query("UPDATE employee SET role_id=? WHERE first_name=?", [roleUpdate[i].roleId, usersName]);
+            const addRow = await db.query("UPDATE employee SET role_id=? WHERE first_name=?", [roleUpdate[i].roleId, userName]);
             break;
         }
     }
-    console.log(`${usersName}'s role has been updated.`)
+    console.log(`${userName}'s role has been updated.`)
     Restart();
 }
 
