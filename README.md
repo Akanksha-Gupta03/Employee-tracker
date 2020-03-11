@@ -18,4 +18,8 @@ This is a simple command-line application that manages a company's employee info
 * Express
 * MySQL
 
+## Preview
+
+![Giphy ](assets/demo.gif)
+
 

@@ -1,6 +1,6 @@
 const inquirer = require("inquirer");
-const mysql = require( 'mysql' );
-require('events').EventEmitter.defaultMaxListeners = 40;
+const mysql = require( "mysql");
+require("events").EventEmitter.defaultMaxListeners = 40;
 
 class Database {
     constructor( config ) {
@@ -85,7 +85,7 @@ async function startPrompts(){
 
 async function addEmployee(){
 
-    let roleArray =   await db.query(`SELECT roleId, title FROM role `);
+    let roleArray =   await db.query("SELECT roleId, title FROM role ");
     roleArray = JSON.stringify(roleArray);
     roleArray = JSON.parse(roleArray);
 
@@ -122,7 +122,7 @@ async function addEmployee(){
     
     for (var i = 0; i <roleArray.length; i++){
         if(employeeAdded.roleId == roleArray[i].title){
-            const addRow = await db.query('INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(?,?,?,?)',
+            const addRow = await db.query("INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(?,?,?,?)",
                     [employeeAdded.eFirstName, employeeAdded.eLastName, roleArray[i].roleId, employeeAdded.managerId]
             );
             break;
@@ -137,31 +137,31 @@ async function addDepartment(){
     const departmentAdded = await inquirer.prompt([
         {
             type: "input", 
-            name: "depName",
+            name: "deptName",
             message: "Enter the department name", 
         }
     ]); 
 
     const addRow = await db.query(
-        'INSERT INTO department(name) VALUES(?)',
-            [departmentAdded.depName]
+        "INSERT INTO department(name) VALUES(?)",
+            [departmentAdded.deptName]
     );
 
-    console.log(`${departmentAdded.depName} has been added`);
+    console.log(`${departmentAdded.deptName} has been added`);
     Restart();
 }
 
 async function addRole(){
-    let depArray =   await db.query(`SELECT deptId, name FROM department `);
-    depArray = JSON.stringify(depArray);
-    depArray = JSON.parse(depArray);
+    let deptArray =   await db.query("SELECT deptId, name FROM department");
+    deptArray = JSON.stringify(deptArray);
+    deptArray = JSON.parse(deptArray);
 
-    let depChoices = [];
-    for (var i = 0; i <depArray.length; i++){
-        depChoices.push(depArray[i].name);
+    let deptChoices = [];
+    for (var i = 0; i <deptArray.length; i++){
+        deptChoices.push(deptArray[i].name);
     }
 
-    console.log(depChoices);
+    console.log(deptChoices);
     const roleAdded = await inquirer.prompt([
         {
             type: "input", 
@@ -177,14 +177,14 @@ async function addRole(){
             type: "list", 
             name: "deptId",
             message: "What is the name of the department?", 
-            choices:depChoices
+            choices:deptChoices
         }
     ]); 
 
-    for (var i = 0; i <depArray.length; i++){
-        if(roleAdded.deptId == depArray[i].name){
-            const addRow = await db.query('INSERT INTO role(title, annual_salary, department_id ) VALUES(?,?,?)',
-            [roleAdded.roleName, roleAdded.salary, depArray[i].deptId]);
+    for (var i = 0; i <deptArray.length; i++){
+        if(roleAdded.deptId == deptArray[i].name){
+            const addRow = await db.query("INSERT INTO role(title, annual_salary, department_id ) VALUES(?,?,?)",
+            [roleAdded.roleName, roleAdded.salary, deptArray[i].deptId]);
             break;
         }
     }
@@ -239,7 +239,7 @@ async function viewAll(){
 };
 
 async function updateEmployee(){
-    let roleUpdate =  await db.query(`SELECT roleId, title FROM role `);
+    let roleUpdate =  await db.query("SELECT roleId, title FROM role ");
     roleUpdate = JSON.stringify(roleUpdate);
     roleUpdate = JSON.parse(roleUpdate);
 
@@ -277,7 +277,7 @@ async function updateEmployee(){
 }
 
 async function removeEmployee(){
-    let employeeName =  await db.query(`SELECT first_name FROM employee `);
+    let employeeName =  await db.query("SELECT first_name FROM employee");
     employeeName = JSON.stringify(employeeName);
     employeeName = JSON.parse(employeeName);
 
