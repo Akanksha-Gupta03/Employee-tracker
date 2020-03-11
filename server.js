@@ -1,65 +1,76 @@
-const express = require('express');
-const inquirer = require('inquirer');
+const inquirer = require("inquirer");
+const mysql = require( 'mysql' );
+require('events').EventEmitter.defaultMaxListeners = 15;
 
-const PORT = process.env.PORT ||8080;
-
-const app = express();
-app.use(express.urlencoded({extended: true}));
-// Managers questions
-async function main(){
-   
-    const questions1 = await inquirer.prompt([
-        {
-            type:"list",
-            message:"What would you like to do?",
-            name:"userChoice",
-            choices: ["Add","View","Update"]
-        }
-    ])
-    if(questions1.name == "Add"){
-        const quesAdd = await inquirer.prompt([
-            {
-                type:"list",
-                message:"What would you like to add?",
-                name:"userChoice",
-                choices: ["Department","Role","Employees"]
-            }
-        ]);
-
-
-        if(quesAdd.name == "Department"){
-            const quesDept = await inquirer.prompt([  
-                {
-                    type:"input",
-                    message:"What is the name of the department that you would like to add?",
-                    name:"department"
-                    
-                } 
-            ])
-        }else if(quesAdd.name == "Role"){
-            
-        }
-
-    }else if(questions1.name == "View"){
-        const questions2 = await inquirer.prompt([
-            {
-                type:"list",
-                message:"What would you like to View?",
-                name:"userChoice",
-                choices: ["Department","Role","Employees","All"]
-            }
-        ])
-
-    }else {
-        const questions2 = await inquirer.prompt([
-            {
-                type:"list",
-                message:"What would you like to update employee ?",
-                name:"userChoice",
-                choices: ["Department","Role","Employees"]
-            }
-        ])
+//connection to my sql
+class Database {
+    constructor( config ) {
+        this.connection = mysql.createConnection( config );
+    }
+    query( sql, args=[] ) {
+        return new Promise( ( resolve, reject ) => {
+            this.connection.query( sql, args, ( err, rows ) => {
+                if ( err )
+                    return reject( err );
+                resolve( rows );
+            } );
+        } );
+    }
+    close() {
+        return new Promise( ( resolve, reject ) => {
+            this.connection.end( err => {
+                if ( err )
+                    return reject( err );
+                resolve();
+            } );
+        } );
     }
 }
 
-       
+const db = new Database({
+    host: "localhost",
+    port: 3306,
+    user: "root",
+    password: "akanksha12",
+    database: "employer_tracker" 
+});
+
+startPrompts();
+
+async function startPrompts(){
+    const startChoices = ["Add employee","Add department","Add role","View employees", "View departments", "View roles", "View employees by Role","View employees by Department","View all", "Update Employee","Remove Employee" ];
+    const quesFirst = await inquirer.prompt([
+        {
+            type: "list", 
+            name: "userChoice",
+            message: "What would you like to do?", 
+            choices: startChoices
+        }
+    ]);
+
+    switch(quesFirst.userChoice){
+        case ("Add employee"):
+            return addEmployee();
+        case ("Add department"):
+            return addDepartment();
+        case ("Add role"):
+            return addRole();
+        case ("View employees"):
+            return viewEmployees();
+        case ("View departments"):
+            return viewDepartment();
+        case ("View roles"):
+            return viewRoles();
+        case ("View employees by Role"):
+            return viewEmployeesByRoles();
+        case ("View employees by Department"):
+            return viewEmployeesByDepartment();
+        case ("View all"):
+            return viewAll();
+        case ("Update Employee"):
+            return updateEmployee();
+        case ("Remove Employee"):
+            return removeEmployee();
+    }  
+}
+
