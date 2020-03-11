@@ -2,7 +2,6 @@ const inquirer = require("inquirer");
 const mysql = require( 'mysql' );
 require('events').EventEmitter.defaultMaxListeners = 15;
 
-//connection to my sql
 class Database {
     constructor( config ) {
         this.connection = mysql.createConnection( config );
@@ -102,7 +101,7 @@ async function addEmployee(){
             [employeeAdded.eFirstName, employeeAdded.eLastName, employeeAdded.roleId, employeeAdded.managerId]
     );
     
-    // console.log(`${employeeAdded.eFirstName} ${employeeAdded.eLastName} has been added `);
+    console.log(`${employeeAdded.eFirstName} ${employeeAdded.eLastName} has been added `);
     startApp();
 }
 
@@ -120,7 +119,7 @@ async function addDepartment(){
             [departmentAdded.depName]
     );
 
-    // console.log(`${departmentAdded.depName} has been added`);
+    console.log(`${departmentAdded.depName} has been added`);
     startApp();
 }
 
@@ -148,9 +147,105 @@ async function addRole(){
             [roleAdded.roleName, roleAdded.salary, roleAdded.deptId]
     );
 
-    // console.log(`${roleAdded.roleName} with salary of $${roleAdded.salary}has been added`)
+     console.log(`${roleAdded.roleName} with salary of $${roleAdded.salary}has been added`)
     
     startApp();
 
+}
+async function viewEmployees(){
+    const sqlTable = await db.query("Select * FROM employee");
+    console.table(sqlTable);
+
+    startApp();
+
+};
+
+async function viewDepartment(){
+    const sqlTable = await db.query("SELECT * FROM department");
+    console.table(sqlTable);
+
+    startApp();
+
+};
+async function viewRoles(){
+    const sqlTable = await db.query("SELECT * FROM role");
+    console.table(sqlTable);
+
+    startApp();
+
+};
+
+async function viewEmployeesByRoles(){
+    const sqlTable = await db.query("SELECT first_name, last_name, title, annual_salary FROM employee LEFT JOIN role ON employee.role_id = role.roleId");
+    console.table(sqlTable);
+
+    startApp();   
+};
+async function viewEmployeesByDepartment(){
+    const sqlTable = await db.query("SELECT name, first_name, last_name from department LEFT JOIN role ON role.department_id = department.depId LEFT JOIN employee ON employee.role_id = role.roleId ");
+    console.table(sqlTable);
+
+    startApp();   
+};
+
+async function viewAll(){
+    const sqlTable = await db.query("SELECT first_name, last_name, title, annual_salary,name FROM employee LEFT JOIN role ON employee.role_id = role.roleId LEFT JOIN department ON role.department_id = department.depId");
+    console.table(sqlTable);
+    startApp();
+
+};
+
+
+async function updateEmployee(){
+    const updateEmployeeRole = await inquirer.prompt([
+        {
+            type: "list", 
+            name: "eFirstName",
+            message: "Who would you like to update?", 
+        },
+        {
+            type: "input", 
+            name: "updateRoleId",
+            message: "What do you want to update the employee's role to?", 
+        }
+    ]);
+    
+    userUpdateName = updateEmployeeRole.eFirstName;
+    updateRole = updateEmployeeRole.updateRoleId;
+    const updatedTable = await db.query("UPDATE employee SET role_id=? WHERE first_name=?", [updateRole, userUpdateName]);
+
+    console.log(`${updateEmployeeRole.eFirstName}'s role has been updated.`)
+    startApp();
+
+}
+
+async function removeEmployee(){
+    const removeSql = await inquirer.prompt([
+        {
+            type: "input", 
+            name: "eFirstName",
+            message: "Who would you like to remove?"
+        }
+    ]);
+
+    const deletedEmp = await db.query("DELETE FROM employee WHERE first_name=?",[removeSql.eFirstName]);
+
+
+    console.log(`${removeSql.eFirstName} has been removed.`)
+}
+async function startApp(){
+    const askUser = await inquirer.prompt([
+        {
+            type: "input",
+            message: "Restart ?",
+            name: "userConfirm"
+        }
+    ]);
+
+    if(askUser.userConfirm == "yes"){
+        return startPrompts();
+    }else{
+        process.exit;
+    }
 }
 
