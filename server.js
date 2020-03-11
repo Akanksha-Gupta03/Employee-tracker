@@ -32,7 +32,7 @@ const db = new Database({
     port: 3306,
     user: "root",
     password: "akanksha12",
-    database: "employer_tracker" 
+    database: "employee_tracker" 
 });
 
 startPrompts();
@@ -97,4 +97,60 @@ async function addEmployee(){
             message: "What is the manager id number? "
         }
     ]); 
+    const insertRow = await db.query(
+        'INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(?,?,?,?)',
+            [employeeAdded.eFirstName, employeeAdded.eLastName, employeeAdded.roleId, employeeAdded.managerId]
+    );
+    
+    console.log(`${employeeAdded.eFirstName} ${employeeAdded.eLastName} has been added `);
+    startAgain();
 }
+
+async function addDepartment(){
+    const departmentAdded = await inquirer.prompt([
+        {
+            type: "input", 
+            name: "depName",
+            message: "Provide the name of the department", 
+        }
+    ]); 
+
+    const insertRow = await db.query(
+        'INSERT INTO department(name) VALUES(?)',
+            [departmentAdded.depName]
+    );
+
+    console.log(`${departmentAdded.depName} has been added`);
+    startAgain();
+}
+
+async function addRole(){
+    const roleAdded = await inquirer.prompt([
+        {
+            type: "input", 
+            name: "roleName",
+            message: "Provide the role name.", 
+        },
+        {
+            type: "input", 
+            name: "salary",
+            message:  "What is the salary for this role?", 
+        },
+        {
+            type: "input", 
+            name: "deptId",
+            message: "What is the department id number?", 
+        }
+    ]); 
+
+    const insertRow = await db.query(
+        'INSERT INTO role(title, yearly_salary, department_id ) VALUES(?,?,?)',
+            [roleAdded.roleName, roleAdded.salary, roleAdded.deptId]
+    );
+
+    console.log(`${roleAdded.roleName} with salary of $${roleAdded.salary}has been added`)
+    
+    startAgain();
+
+}
+
