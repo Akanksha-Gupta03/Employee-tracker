@@ -1,6 +1,6 @@
 const inquirer = require("inquirer");
 const mysql = require( 'mysql' );
-require('events').EventEmitter.defaultMaxListeners = 15;
+require('events').EventEmitter.defaultMaxListeners = 40;
 
 class Database {
     constructor( config ) {
@@ -31,13 +31,23 @@ const db = new Database({
     port: 3306,
     user: "root",
     password: "akanksha12",
-    database: "employee_tracker" 
+    database: "employer_tracker" 
 });
 
 startPrompts();
 
 async function startPrompts(){
-    const startChoices = ["Add employee","Add department","Add role","View employees", "View departments", "View roles", "View employees by Role","View employees by Department","View all", "Update Employee","Remove Employee" ];
+    const startChoices = ["Add employee",
+                          "Add department",
+                          "Add role",
+                          "View employees",
+                          "View departments",
+                          "View roles", 
+                          "View employees by Role",
+                          "View employees by Department",
+                          "View all", 
+                          "Update Employee","Remove Employee" ];
+
     const quesFirst = await inquirer.prompt([
         {
             type: "list", 
@@ -70,25 +80,37 @@ async function startPrompts(){
             return updateEmployee();
         case ("Remove Employee"):
             return removeEmployee();
-    }  
+    };
 }
 
 async function addEmployee(){
+
+    let roleArray =   await db.query(`SELECT roleId, title FROM role `);
+    roleArray = JSON.stringify(roleArray);
+    roleArray = JSON.parse(roleArray);
+
+    let roleChoices = [];
+    for (var i = 0; i <roleArray.length; i++){
+        roleChoices.push(roleArray[i].title);
+    }
+
     const employeeAdded = await inquirer.prompt([
         {
             type: "input", 
             name: "eFirstName",
-            message: "Enter the first name of employee", 
+            message: "What is the first name of Employee?", 
         },
         {
             type: "input", 
             name: "eLastName",
-            message: "Enter the last name of employee?", 
+            message: "What is the last name of Employee?", 
         },
         {
-            type: "input", 
+            type: "list", 
             name: "roleId",
-            message: "What is the role id number of employee?", 
+            message: "What is the role of Employee?", 
+            choices: roleChoices
+
         },
         {
             type: "input",
@@ -96,13 +118,19 @@ async function addEmployee(){
             message: "What is the manager id number? "
         }
     ]); 
-    const addRow = await db.query(
-        'INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(?,?,?,?)',
-            [employeeAdded.eFirstName, employeeAdded.eLastName, employeeAdded.roleId, employeeAdded.managerId]
-    );
+
+    
+    for (var i = 0; i <roleArray.length; i++){
+        if(employeeAdded.roleId == roleArray[i].title){
+            const addRow = await db.query('INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(?,?,?,?)',
+                    [employeeAdded.eFirstName, employeeAdded.eLastName, roleArray[i].roleId, employeeAdded.managerId]
+            );
+            break;
+        }
+    }
     
     console.log(`${employeeAdded.eFirstName} ${employeeAdded.eLastName} has been added `);
-    startApp();
+    Restart();
 }
 
 async function addDepartment(){
@@ -110,7 +138,7 @@ async function addDepartment(){
         {
             type: "input", 
             name: "depName",
-            message: "Provide the name of the department", 
+            message: "Enter the department name", 
         }
     ]); 
 
@@ -120,43 +148,56 @@ async function addDepartment(){
     );
 
     console.log(`${departmentAdded.depName} has been added`);
-    startApp();
+    Restart();
 }
 
 async function addRole(){
+    let depArray =   await db.query(`SELECT deptId, name FROM department `);
+    depArray = JSON.stringify(depArray);
+    depArray = JSON.parse(depArray);
+
+    let depChoices = [];
+    for (var i = 0; i <depArray.length; i++){
+        depChoices.push(depArray[i].name);
+    }
+
+    console.log(depChoices);
     const roleAdded = await inquirer.prompt([
         {
             type: "input", 
             name: "roleName",
-            message: "Enter the role name.", 
+            message: "Provide the role name.", 
         },
         {
             type: "input", 
             name: "salary",
-            message:  "What is the salary for this role?", 
+            message: "What is the salary for this role?", 
         },
         {
-            type: "input", 
+            type: "list", 
             name: "deptId",
-            message: "What is the department id number?", 
+            message: "What is the name of the department?", 
+            choices:depChoices
         }
     ]); 
 
-    const addRow = await db.query(
-        'INSERT INTO role(title, annual_salary, department_id ) VALUES(?,?,?)',
-            [roleAdded.roleName, roleAdded.salary, roleAdded.deptId]
-    );
+    for (var i = 0; i <depArray.length; i++){
+        if(roleAdded.deptId == depArray[i].name){
+            const addRow = await db.query('INSERT INTO role(title, annual_salary, department_id ) VALUES(?,?,?)',
+            [roleAdded.roleName, roleAdded.salary, depArray[i].deptId]);
+            break;
+        }
+    }
 
-     console.log(`${roleAdded.roleName} with salary of $${roleAdded.salary}has been added`)
-    
-    startApp();
-
+    console.log(`${roleAdded.roleName} with salary of $${roleAdded.salary} has been added`)
+    Restart();
 }
+
 async function viewEmployees(){
     const sqlTable = await db.query("Select * FROM employee");
     console.table(sqlTable);
 
-    startApp();
+    Restart();
 
 };
 
@@ -164,14 +205,15 @@ async function viewDepartment(){
     const sqlTable = await db.query("SELECT * FROM department");
     console.table(sqlTable);
 
-    startApp();
+    Restart();
 
 };
+
 async function viewRoles(){
     const sqlTable = await db.query("SELECT * FROM role");
     console.table(sqlTable);
 
-    startApp();
+    Restart();
 
 };
 
@@ -179,65 +221,97 @@ async function viewEmployeesByRoles(){
     const sqlTable = await db.query("SELECT first_name, last_name, title, annual_salary FROM employee LEFT JOIN role ON employee.role_id = role.roleId");
     console.table(sqlTable);
 
-    startApp();   
+    Restart();   
 };
+
 async function viewEmployeesByDepartment(){
-    const sqlTable = await db.query("SELECT name, first_name, last_name from department LEFT JOIN role ON role.department_id = department.depId LEFT JOIN employee ON employee.role_id = role.roleId ");
+    const sqlTable = await db.query("SELECT name, first_name, last_name from department LEFT JOIN role ON role.department_id = department.deptId LEFT JOIN employee ON employee.role_id = role.roleId ");
     console.table(sqlTable);
 
-    startApp();   
+    Restart();   
 };
 
 async function viewAll(){
-    const sqlTable = await db.query("SELECT first_name, last_name, title, annual_salary,name FROM employee LEFT JOIN role ON employee.role_id = role.roleId LEFT JOIN department ON role.department_id = department.depId");
+    const sqlTable = await db.query("SELECT first_name, last_name, title, annual_salary,name FROM employee LEFT JOIN role ON employee.role_id = role.roleId LEFT JOIN department ON role.department_id = department.deptId");
     console.table(sqlTable);
-    startApp();
+    Restart();
 
 };
 
-
 async function updateEmployee(){
+    let roleUpdate =  await db.query(`SELECT roleId, title FROM role `);
+    roleUpdate = JSON.stringify(roleUpdate);
+    roleUpdate = JSON.parse(roleUpdate);
+
+    let roleChoices = [];
+    
+    for (var i = 0; i <roleUpdate.length; i++){
+        roleChoices.push(roleUpdate[i].title);
+    }
+
     const updateEmployeeRole = await inquirer.prompt([
         {
-            type: "list", 
-            name: "eFirstName",
-            message: "Who would you like to update?", 
+            type: "input", 
+            name: "firstName",
+            message: "Provide the first name of the employee you would like to update.", 
         },
         {
-            type: "input", 
-            name: "updateRoleId",
+            type: "list", 
+            name: "updateroleId",
             message: "What do you want to update the employee's role to?", 
+            choices: roleChoices
         }
     ]);
     
-    userUpdateName = updateEmployeeRole.eFirstName;
-    updateRole = updateEmployeeRole.updateRoleId;
-    const updatedTable = await db.query("UPDATE employee SET role_id=? WHERE first_name=?", [updateRole, userUpdateName]);
+    usersName = updateEmployeeRole.firstName;
+    updateRole = updateEmployeeRole.updateroleId;
 
-    console.log(`${updateEmployeeRole.eFirstName}'s role has been updated.`)
-    startApp();
-
+    for (var i = 0; i <roleUpdate.length; i++){
+        if(updateRole == roleUpdate[i].title){
+            const addRow = await db.query("UPDATE employee SET role_id=? WHERE first_name=?", [roleUpdate[i].roleId, usersName]);
+            break;
+        }
+    }
+    console.log(`${usersName}'s role has been updated.`)
+    Restart();
 }
 
 async function removeEmployee(){
+    let employeeName =  await db.query(`SELECT first_name FROM employee `);
+    employeeName = JSON.stringify(employeeName);
+    employeeName = JSON.parse(employeeName);
+
+    let employeeChoices = [];
+    
+    for (var i = 0; i <employeeName.length; i++){
+        employeeChoices.push(employeeName[i].first_name);
+    }
+
     const removeSql = await inquirer.prompt([
         {
-            type: "input", 
+            type: "list", 
             name: "eFirstName",
-            message: "Who would you like to remove?"
+            message: "Who would you like to remove?",
+            choices: employeeChoices
         }
     ]);
 
-    const deletedEmp = await db.query("DELETE FROM employee WHERE first_name=?",[removeSql.eFirstName]);
-
-
-    console.log(`${removeSql.eFirstName} has been removed.`)
+    for (var i = 0; i <employeeChoices.length; i++){
+        if(removeSql.eFirstName == employeeName[i].first_name){
+            const deletedEmp = await db.query("DELETE FROM employee WHERE first_name=?",[removeSql.eFirstName]);
+            break;
+        }
+    }
+    
+    console.log(`${removeSql.eFirstName} has been removed.`);
+    Restart();
 }
-async function startApp(){
+
+async function Restart(){
     const askUser = await inquirer.prompt([
         {
             type: "input",
-            message: "Restart ?",
+            message: "Restart?",
             name: "userConfirm"
         }
     ]);
@@ -248,4 +322,3 @@ async function startApp(){
         process.exit;
     }
 }
-
