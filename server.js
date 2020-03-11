@@ -74,3 +74,27 @@ async function startPrompts(){
     }  
 }
 
+async function addEmployee(){
+    const employeeAdded = await inquirer.prompt([
+        {
+            type: "input", 
+            name: "eFirstName",
+            message: "What is the employee's first name?", 
+        },
+        {
+            type: "input", 
+            name: "eLastName",
+            message: "What is the employee's last name?", 
+        },
+        {
+            type: "input", 
+            name: "roleId",
+            message: "What is the employee's role id number?", 
+        },
+        {
+            type: "input",
+            name: "managerId",
+            message: "What is the manager id number? "
+        }
+    ]); 
+}
