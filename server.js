@@ -79,17 +79,17 @@ async function addEmployee(){
         {
             type: "input", 
             name: "eFirstName",
-            message: "What is the employee's first name?", 
+            message: "Enter the first name of employee", 
         },
         {
             type: "input", 
             name: "eLastName",
-            message: "What is the employee's last name?", 
+            message: "Enter the last name of employee?", 
         },
         {
             type: "input", 
             name: "roleId",
-            message: "What is the employee's role id number?", 
+            message: "What is the role id number of employee?", 
         },
         {
             type: "input",
@@ -97,13 +97,13 @@ async function addEmployee(){
             message: "What is the manager id number? "
         }
     ]); 
-    const insertRow = await db.query(
+    const addRow = await db.query(
         'INSERT INTO employee(first_name, last_name, role_id, manager_id) VALUES(?,?,?,?)',
             [employeeAdded.eFirstName, employeeAdded.eLastName, employeeAdded.roleId, employeeAdded.managerId]
     );
     
-    console.log(`${employeeAdded.eFirstName} ${employeeAdded.eLastName} has been added `);
-    startAgain();
+    // console.log(`${employeeAdded.eFirstName} ${employeeAdded.eLastName} has been added `);
+    startApp();
 }
 
 async function addDepartment(){
@@ -115,13 +115,13 @@ async function addDepartment(){
         }
     ]); 
 
-    const insertRow = await db.query(
+    const addRow = await db.query(
         'INSERT INTO department(name) VALUES(?)',
             [departmentAdded.depName]
     );
 
-    console.log(`${departmentAdded.depName} has been added`);
-    startAgain();
+    // console.log(`${departmentAdded.depName} has been added`);
+    startApp();
 }
 
 async function addRole(){
@@ -129,7 +129,7 @@ async function addRole(){
         {
             type: "input", 
             name: "roleName",
-            message: "Provide the role name.", 
+            message: "Enter the role name.", 
         },
         {
             type: "input", 
@@ -143,14 +143,14 @@ async function addRole(){
         }
     ]); 
 
-    const insertRow = await db.query(
-        'INSERT INTO role(title, yearly_salary, department_id ) VALUES(?,?,?)',
+    const addRow = await db.query(
+        'INSERT INTO role(title, annual_salary, department_id ) VALUES(?,?,?)',
             [roleAdded.roleName, roleAdded.salary, roleAdded.deptId]
     );
 
-    console.log(`${roleAdded.roleName} with salary of $${roleAdded.salary}has been added`)
+    // console.log(`${roleAdded.roleName} with salary of $${roleAdded.salary}has been added`)
     
-    startAgain();
+    startApp();
 
 }
 
